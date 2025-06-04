@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảo Trâm Như Thế Nào?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Itim&family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fdecf2 0%, #e6e6fa 50%, #cffde1 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            position: relative;
+        }
+
+        /* --- Cửa sổ câu hỏi --- */
+        #questionBox {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            padding: 2rem 2.5rem;
+            border-radius: 25px;
+            box-shadow: 0 12px 30px rgba(100, 100, 150, 0.25);
+            text-align: center;
+            position: absolute;
+            z-index: 100;
+            transition: top 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                        left 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                        transform 0.5s ease-out;
+            max-width: 90%;
+            width: auto;
+        }
+
+        #questionText {
+            font-family: 'Itim', sans-serif;
+            font-size: 1.8rem;
+            color: #7a5288;
+            margin-bottom: 1.75rem;
+            line-height: 1.4;
+            font-weight: bold;
+        }
+
+        .action-button {
+            font-family: 'Itim', sans-serif;
+            padding: 0.8rem 1.8rem;
+            border: none;
+            border-radius: 35px;
+            font-size: 1.05rem;
+            cursor: pointer;
+            margin: 0.6rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 8px rgba(0,0,0,0.12);
+            font-weight: bold;
+        }
+        .action-button:hover {
+            transform: translateY(-4px) scale(1.07);
+            box-shadow: 0 7px 15px rgba(0,0,0,0.18);
+        }
+        .action-button:active {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 4px 7px rgba(0,0,0,0.12);
+        }
+
+        #cuteButton {
+            background-color: #ffb6c1;
+            color: #fff;
+        }
+
+        #sassyButton {
+            background-color: #afeeee;
+            color: #fff;
+        }
+
+        /* --- Thông báo thành công & Nút Khám Phá --- */
+        #successMessageContainer {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            background-color: rgba(0,0,0,0.1);
+            padding: 1rem;
+        }
+        #successMessage {
+            font-family: 'Itim', sans-serif;
+            /* Điều chỉnh font-size cho mobile, không xuống hàng */
+            font-size: clamp(1.5rem, 5vw, 2.2rem); /* Tăng kích thước một chút */
+            color: #ff63b4;
+            text-shadow: 1px 1px 3px rgba(255,255,255,0.7);
+            transform: scale(0);
+            background-color: rgba(255,255,255,0.9);
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            animation: success-appear 0.6s cubic-bezier(0.68, -0.6, 0.265, 1.65) forwards;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px; /* Giảm margin bottom một chút */
+            white-space: nowrap; /* Ngăn không cho xuống hàng */
+            max-width: 95%;
+        }
+
+        @keyframes success-appear {
+            to { transform: scale(1); }
+        }
+
+        #exploreButton {
+            font-family: 'Itim', sans-serif;
+            background-color: #d8bfd8;
+            color: #4b0082;
+            padding: 0.7rem 1.6rem; /* Điều chỉnh padding */
+            border: none;
+            border-radius: 30px;
+            font-size: clamp(0.9rem, 3.5vw, 1.1rem); /* Nhỏ hơn successMessage */
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px #b09ab0, 0 8px 15px rgba(0,0,0,0.2);
+            transition: all 0.15s ease-out;
+            display: none;
+            opacity: 0;
+            animation: button-fade-in 0.5s ease-out 0.5s forwards;
+            margin-top: 10px; /* Giảm margin top */
+        }
+        #exploreButton:hover {
+            background-color: #c9aec9;
+            transform: translateY(-2px);
+            box-shadow: 0 7px #a08aa0, 0 10px 20px rgba(0,0,0,0.25);
+        }
+        #exploreButton:active {
+            background-color: #bfa0bf;
+            transform: translateY(1px);
+            box-shadow: 0 3px #a08aa0, 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        @keyframes button-fade-in {
+            to { opacity: 1; }
+        }
+
+        /* --- Modal Khám Phá --- */
+        #exploreModal {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.65); /* Tăng độ mờ một chút */
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 300;
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+        }
+        #exploreModal.show {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-content {
+            font-family: 'Itim', sans-serif;
+            background-color: #fff9fd;
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 550px; /* Tăng max-width một chút */
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            border: 3px solid #ffc0cb;
+        }
+        .modal-section {
+            margin-bottom: 1.3rem; /* Tăng khoảng cách giữa các section */
+            padding: 1rem; /* Tăng padding section */
+            background-color: rgba(255, 240, 245, 0.85); /* Màu nền nhẹ nhàng hơn */
+            border-radius: 15px;
+            border: 1px solid #ffe4e1; /* Border nhẹ nhàng */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Thêm shadow nhẹ */
+        }
+        .modal-section:last-child {
+            margin-bottom: 0;
+        }
+        .modal-section h3 {
+            font-size: 1.5rem; /* Tăng font-size title section */
+            font-weight: bold;
+            margin-bottom: 0.8rem; /* Tăng margin bottom title */
+            display: flex;
+            align-items: center;
+            color: #6a4c93;
+            border-bottom: 1px dashed #e0b0ff; /* Thêm gạch chân nhẹ */
+            padding-bottom: 0.4rem; /* Padding cho gạch chân */
+        }
+        .modal-section h3 .icon {
+            margin-right: 0.6rem; /* Tăng margin icon */
+            font-size: 1.8rem; /* Tăng font-size icon */
+        }
+        #closeModalButton {
+            position: absolute;
+            top: 12px; /* Điều chỉnh vị trí nút đóng */
+            right: 18px;
+            font-size: 2.8rem; /* Tăng font-size nút đóng */
+            font-weight: bold;
+            color: #ff7f9e;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        #closeModalButton:hover {
+            color: #ff4d79;
+            transform: scale(1.1);
+        }
+        .loading-spinner {
+            border: 4px solid #fdecf2; /* Màu nhạt hơn */
+            border-top: 4px solid #ffb6c1; /* Màu hồng chính */
+            border-radius: 50%;
+            width: 28px; /* Tăng kích thước spinner */
+            height: 28px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto; /* Tăng margin spinner */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .static-placeholder, .api-content {
+            color: #555;
+            padding: 0.5rem 0;
+            line-height: 1.6; /* Tăng line-height cho dễ đọc */
+            font-size: 0.95rem;
+        }
+        .api-error-message {
+            color: #d9534f; /* Màu đỏ cảnh báo */
+            background-color: #f2dede; /* Nền đỏ nhạt */
+            border: 1px solid #ebccd1;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            text-align: center;
+            font-size: 0.9em;
+        }
+         .api-warning-message {
+            color: #8a6d3b; /* Màu vàng cảnh báo */
+            background-color: #fcf8e3; /* Nền vàng nhạt */
+            border: 1px solid #faebcc;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .vocab-item, .food-item, .app-item, .cultural-tip-item, .fact-item {
+            margin-bottom: 0.6rem; /* Tăng margin bottom item */
+            padding: 0.6rem 0.8rem; /* Tăng padding item */
+            background-color: #fff0f5; /* Màu nền item nhẹ */
+            border-radius: 10px; /* Bo tròn item */
+            font-size: 0.95rem;
+            border-left: 3px solid #ffc0cb; /* Thêm border trái */
+        }
+        .vocab-item strong, .food-item strong, .app-item strong, .cultural-tip-item strong, .fact-item strong { color: #ff69b4; }
+
+        .refresh-button {
+            background-color: #add8e6; color: white; font-weight: bold;
+            padding: 0.6rem 1.2rem; border-radius: 25px; margin-top: 0.8rem;
+            transition: background-color 0.2s, transform 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .refresh-button:hover { background-color: #9acfea; transform: translateY(-1px); }
+        .refresh-button .icon { margin-right: 0.4rem; }
+
+        #omamoriContent {
+            font-style: italic;
+            color: #5c5c8a;
+            padding: 0.8rem; /* Tăng padding */
+            text-align: center;
+            background-color: #faf0e6; /* Màu nền riêng */
+            border-radius: 10px;
+        }
+
+        /* Thử thách tiếng Nhật */
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 0.6rem;
+            margin: 0.4rem 0;
+            background-color: #e6e6fa;
+            border: 1px solid #d8bfd8;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            text-align: left;
+        }
+        .quiz-option:hover {
+            background-color: #d8c6e6;
+            border-color: #c0b0d0;
+        }
+        .quiz-option.correct { background-color: #90ee90; border-color: #7fcc7f; }
+        .quiz-option.incorrect { background-color: #ffcccb; border-color: #ffb3b0; }
+        #quizFeedback { margin-top: 0.5rem; font-weight: bold; }
+
+
+        /* --- Fireworks --- */
+        #fireworksContainer {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 199;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        @keyframes explode {
+            0% { transform: translate(0, 0) scale(0.2); opacity: 1; }
+            20% { opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(var(--s)); opacity: 0; }
+        }
+
+        /* --- Animated Stickers --- */
+        .sticker {
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            z-index: 1;
+            will-change: transform, opacity;
+        }
+
+        .cloud-sticker {
+            width: 100px; height: 60px;
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 50% 50% 40% 40% / 60% 60% 50% 50%;
+            animation: drift 30s linear infinite alternate;
+        }
+        .cloud-1 { top: 8%; left: 3%; animation-duration: 38s; opacity: 0.65; transform: scale(0.9);}
+        .cloud-2 { top: 18%; right: 8%; animation-duration: 30s; opacity: 0.75; transform: scaleX(-1) scale(1.1);}
+        .cloud-3 { bottom: 12%; left: 15%; animation-duration: 42s; opacity: 0.6;}
+        .cloud-4 { top: 30%; left: 40%; animation-duration: 33s; opacity: 0.7; transform: scale(0.8);}
+        .cloud-5 { bottom: 25%; right: 20%; animation-duration: 36s; opacity: 0.68; transform: scaleX(-1) scale(0.95);}
+        .cloud-6 { top: 5%; right: 30%; animation-duration: 45s; opacity: 0.62; transform: scale(1);}
+
+
+        @keyframes drift {
+            from { transform: translateX(-35px) translateY(-8px) rotate(-2deg); }
+            to { transform: translateX(35px) translateY(8px) rotate(2deg); }
+        }
+
+        .heart-sticker {
+            width: 40px; height: 40px;
+            animation: pulse-rotate 2s ease-in-out infinite;
+        }
+        .heart-sticker::before, .heart-sticker::after {
+            content: ""; position: absolute; top: 0;
+            width: 20px; height: 32px; background: #ff85a2;
+            border-radius: 20px 20px 0 0;
+        }
+        .heart-sticker::before {
+            left: 20px;
+            transform: rotate(-45deg); transform-origin: 0 100%;
+        }
+        .heart-sticker::after {
+            left: 0;
+            transform: rotate(45deg); transform-origin: 100% 100%;
+        }
+        .heart-1 { top: 12%; right: 20%; animation-delay: 0.1s; transform: scale(0.85); --base-scale: 0.85;}
+        .heart-2 { bottom: 18%; left: 8%; transform: scale(1.15); animation-delay: 0.4s; --base-scale: 1.15;}
+        .heart-3 { top: 35%; left: 12%; transform: scale(0.95); animation-delay: 0.7s; --base-scale: 0.95;}
+        .heart-4 { top: 55%; right: 10%; transform: scale(1.05); animation-delay: 0.25s; --base-scale: 1.05;}
+        .heart-5 { bottom: 30%; left: 30%; transform: scale(0.75); animation-delay: 0.9s; --base-scale: 0.75;}
+        .heart-6 { top: 70%; right: 40%; transform: scale(1); animation-delay: 0.6s; --base-scale: 1;}
+
+
+        @keyframes pulse-rotate {
+            0%, 100% { transform: scale(var(--base-scale, 1)) rotate(0deg); }
+            50% { transform: scale(calc(var(--base-scale, 1) * 1.2)) rotate(5deg); }
+            75% { transform: scale(calc(var(--base-scale, 1) * 1.1)) rotate(-3deg); }
+        }
+
+        .star-sticker {
+            width: 20px; height: 20px;
+            background-color: #fffacd;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: twinkle-rotate 2.8s infinite;
+        }
+        .star-1 { top: 25%; left: 28%; animation-delay: 0s; transform: scale(1.25); --base-scale: 1.25;}
+        .star-2 { top: 58%; right: 12%; animation-delay: 0.6s; transform: scale(0.85); --base-scale: 0.85;}
+        .star-3 { top: 68%; left: 38%; animation-delay: 1.2s; transform: scale(1.05); --base-scale: 1.05;}
+        .star-4 { top: 8%; left: 55%; animation-delay: 1.8s; transform: scale(1.15); --base-scale: 1.15;}
+        .star-5 { top: 45%; right: 35%; animation-delay: 0.3s; transform: scale(0.95); --base-scale: 0.95;}
+        .star-6 { bottom: 10%; left: 5%; animation-delay: 0.9s; transform: scale(1.3); --base-scale: 1.3;}
+        .star-7 { top: 15%; left: 80%; animation-delay: 1.5s; transform: scale(0.75); --base-scale: 0.75;}
+
+
+        @keyframes twinkle-rotate {
+            0%, 100% { opacity: 0.4; transform: scale(calc(var(--base-scale, 1) * 0.85)) rotate(0deg); }
+            50% { opacity: 1; transform: scale(calc(var(--base-scale, 1) * 1.15)) rotate(15deg); }
+            75% { opacity: 0.7; transform: scale(var(--base-scale, 1)) rotate(-10deg); }
+        }
+
+        .bunny-sticker {
+            width: 50px; height: 70px;
+            position: absolute;
+            bottom: 3%;
+            left: -70px;
+            animation: bunny-run 16s linear infinite;
+            animation-delay: 1.5s;
+            z-index: 5;
+        }
+        .bunny-body {
+            width: 35px; height: 35px; background: #fff0f3;
+            border-radius: 50% 50% 40% 40%;
+            position: absolute; bottom: 0; left: 7.5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+        .bunny-ear {
+            width: 10px; height: 22px; background: #fff0f3;
+            border: 1px solid #ffd8e0;
+            border-radius: 50% 50% 0 0 / 80% 80% 0 0;
+            position: absolute; top: -10px;
+        }
+        .bunny-ear-left { left: 10px; transform: rotate(-28deg); }
+        .bunny-ear-right { left: 22px; transform: rotate(18deg); }
+        .bunny-tail {
+            width: 16px; height: 16px; background: white;
+            border-radius: 50%; position: absolute;
+            bottom: 5px; left: -3px;
+        }
+
+        @keyframes bunny-run {
+            0% { transform: translateX(0) translateY(0px) rotate(0deg); }
+            4% { transform: translateX(calc(0.04 * (100vw + 70px))) translateY(-12px) rotate(3deg); }
+            8% { transform: translateX(calc(0.08 * (100vw + 70px))) translateY(0px) rotate(0deg); }
+            12% { transform: translateX(calc(0.12 * (100vw + 70px))) translateY(-10px) rotate(-2deg); }
+            16% { transform: translateX(calc(0.16 * (100vw + 70px))) translateY(0px) rotate(0deg); }
+            92% { transform: translateX(calc(0.92 * (100vw + 70px))) translateY(-12px) rotate(3deg); }
+            96% { transform: translateX(calc(0.96 * (100vw + 70px))) translateY(0px) rotate(0deg); }
+            100% { transform: translateX(calc(1 * (100vw + 70px))) translateY(0px) rotate(0deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #questionText { font-size: 1.6rem; }
+            .action-button { padding: 0.7rem 1.5rem; font-size: 1rem; }
+            #successMessage {
+                font-size: clamp(1.3rem, 4.5vw, 2rem); /* Điều chỉnh lại cho phù hợp */
+                padding: 12px 20px;
+            }
+            #exploreButton { font-size: clamp(0.8rem, 3vw, 1rem); padding: 0.7rem 1.5rem; }
+            .modal-content { padding: 1.2rem; width: 90%;}
+            .modal-section h3 { font-size: 1.3rem;}
+            .modal-section h3 .icon { font-size: 1.6rem;}
+
+            .cloud-sticker { width: 80px; height: 50px; }
+            .heart-sticker { width: 35px; height: 35px; }
+            .heart-sticker::before, .heart-sticker::after { width: 17.5px; height: 28px; }
+            .heart-sticker::before { left: 17.5px; }
+            .heart-sticker::after { left: 0; }
+            .star-sticker { width: 18px; height: 18px; }
+            .bunny-sticker { width: 45px; height: 60px; }
+            .bunny-body { width: 30px; height: 30px; left: 7.5px;}
+            .bunny-ear { width: 9px; height: 20px; top: -9px;}
+            .bunny-ear-left { left: 9px;}
+            .bunny-ear-right { left: 20px;}
+            .bunny-tail { width: 14px; height: 14px; bottom: 4px; left: -2px;}
+        }
+         @media (max-width: 480px) {
+            #questionBox { padding: 1.5rem 1.2rem; border-radius: 20px; max-width: 95%;}
+            #questionText { font-size: 1.25rem; margin-bottom: 1rem;}
+            .action-button { display: block; width: 85%; margin: 0.5rem auto; padding: 0.7rem 1rem; font-size: 0.9rem; border-radius: 25px;}
+            #successMessageContainer { padding: 0.5rem; }
+            #successMessage {
+                font-size: clamp(1.1rem, 4vw, 1.5rem); /* Đảm bảo không quá to */
+                padding: 10px 15px;
+                margin-bottom: 8px;
+            }
+            #exploreButton { font-size: clamp(0.8rem, 3.2vw, 0.9rem); padding: 0.6rem 1.2rem; width: 75%; margin-top: 0.3rem;}
+            .modal-content { padding: 1rem; width: 92%;}
+            .modal-section { padding: 0.8rem;}
+            .modal-section h3 { font-size: 1.15rem;}
+            .modal-section h3 .icon { font-size: 1.4rem;}
+            .refresh-button {padding: 0.4rem 0.8rem; font-size: 0.8rem;}
+            .quiz-option { padding: 0.5rem; font-size: 0.9rem;}
+
+
+            .cloud-sticker { width: 50px; height: 30px; }
+            .heart-sticker { width: 25px; height: 25px; }
+            .heart-sticker::before, .heart-sticker::after { width: 12.5px; height: 20px; }
+            .heart-sticker::before { left: 12.5px; }
+            .heart-sticker::after { left: 0; }
+            .star-sticker { width: 12px; height: 12px; }
+            .bunny-sticker { width: 35px; height: 48px; bottom: 1.5%;}
+            .bunny-body { width: 23px; height: 23px; left: 6px;}
+            .bunny-ear { width: 6px; height: 14px; top: -6px;}
+            .bunny-ear-left { left: 6px;}
+            .bunny-ear-right { left: 15px;}
+            .bunny-tail { width: 10px; height: 10px; bottom: 2.5px; left: -1px;}
+         }
+    </style>
+</head>
+<body>
+    <!-- Animated Stickers -->
+    <div class="sticker cloud-sticker cloud-1"></div>
+    <div class="sticker cloud-sticker cloud-2"></div>
+    <div class="sticker cloud-sticker cloud-3"></div>
+    <div class="sticker cloud-sticker cloud-4"></div>
+    <div class="sticker cloud-sticker cloud-5"></div>
+    <div class="sticker cloud-sticker cloud-6" style="top: 60%; left: 5%; animation-duration: 39s; opacity: 0.66; transform: scale(0.85);"></div>
+    <div class="sticker cloud-sticker" style="bottom: 5%; right: 3%; animation-duration: 31s; opacity: 0.72; transform: scaleX(-1) scale(1.05);"></div>
+    <div class="sticker heart-sticker heart-1"></div>
+    <div class="sticker heart-sticker heart-2"></div>
+    <div class="sticker heart-sticker heart-3"></div>
+    <div class="sticker heart-sticker heart-4"></div>
+    <div class="sticker heart-sticker heart-5"></div>
+    <div class="sticker heart-sticker heart-6"></div>
+    <div class="sticker heart-sticker" style="top: 22%; left: 45%; animation-delay: 0.3s; transform: scale(0.9); --base-scale: 0.9;"></div>
+    <div class="sticker heart-sticker" style="bottom: 8%; right: 30%; animation-delay: 1.1s; transform: scale(1.2); --base-scale: 1.2;"></div>
+    <div class="sticker star-sticker star-1"></div>
+    <div class="sticker star-sticker star-2"></div>
+    <div class="sticker star-sticker star-3"></div>
+    <div class="sticker star-sticker star-4"></div>
+    <div class="sticker star-sticker star-5"></div>
+    <div class="sticker star-sticker star-6"></div>
+    <div class="sticker star-sticker star-7"></div>
+    <div class="sticker star-sticker" style="top: 50%; left: 10%; animation-delay: 0.15s; transform: scale(1.1); --base-scale: 1.1;"></div>
+    <div class="sticker star-sticker" style="bottom: 22%; right: 5%; animation-delay: 1.3s; transform: scale(0.9); --base-scale: 0.9;"></div>
+    <div class="sticker bunny-sticker">
+        <div class="bunny-body">
+            <div class="bunny-ear bunny-ear-left"></div>
+            <div class="bunny-ear bunny-ear-right"></div>
+            <div class="bunny-tail"></div>
+        </div>
+    </div>
+
+    <!-- Question Box -->
+    <div id="questionBox">
+        <p id="questionText">🐰 Bảo Trâm như thế nào?</p>
+        <button id="cuteButton" class="action-button">🍬 Dễ thương</button>
+        <button id="sassyButton" class="action-button">🐣 Hay lẩy</button>
+    </div>
+
+    <!-- Success Message Container -->
+    <div id="successMessageContainer">
+         <div id="successMessage">🎉 Chúc mừng, đúng rồi đó aihihi 🎀</div>
+         <button id="exploreButton">🔮 Cùng Khám Phá Nào</button>
+    </div>
+
+    <!-- Explore Modal -->
+    <div id="exploreModal">
+        <div class="modal-content">
+            <button id="closeModalButton">&times;</button>
+
+            <div class="modal-section" id="japaneseChallengeSection">
+                <h3><span class="icon">🎯</span>Thử Thách Tiếng Nhật Nho Nhỏ</h3>
+                <div id="japaneseChallengeContent" class="api-content"></div>
+                <button id="refreshChallengeButton" class="refresh-button"><span class="icon">🔄</span>Câu đố mới</button>
+            </div>
+
+            <div class="modal-section" id="foodSection">
+                <h3><span class="icon">🍱</span>Hôm Nay Ăn Gì Ở Nhật?</h3>
+                <div id="foodContent" class="api-content"></div>
+                <button id="refreshFoodButton" class="refresh-button"><span class="icon">✨</span>Đổi món khác</button>
+            </div>
+
+            <div class="modal-section" id="japanFactSection">
+                <h3><span class="icon">💡</span>Fact Thú Vị Về Nhật Bản</h3>
+                <div id="japanFactContent" class="api-content"></div>
+                <button id="refreshFactButton" class="refresh-button"><span class="icon">🔄</span>Fact mới</button>
+            </div>
+
+            <div class="modal-section" id="vocabSection">
+                <h3><span class="icon">🗣️</span>Từ vựng Tiếng Nhật Bỏ Túi</h3>
+                <div id="vocabContent" class="api-content"></div>
+                <button id="refreshVocabButton" class="refresh-button"><span class="icon">🔄</span>Làm mới từ</button>
+            </div>
+
+            <div class="modal-section" id="appsSection">
+                <h3><span class="icon">📱</span>App Cần Thiết Khi Ở Nhật</h3>
+                <div id="appsContent" class="api-content"></div>
+                <button id="refreshAppsButton" class="refresh-button"><span class="icon">🔄</span>Gợi ý khác</button>
+            </div>
+
+            <div class="modal-section" id="culturalTipsSection">
+                <h3><span class="icon">🙏</span>Lưu Ý Văn Hóa Khi Giao Tiếp</h3>
+                <div id="culturalTipsContent" class="api-content"></div>
+                <button id="refreshCulturalTipsButton" class="refresh-button"><span class="icon">🔄</span>Tips khác</button>
+            </div>
+
+            <div class="modal-section" id="messageSection">
+                <h3><span class="icon">💌</span>Lời Nhắn Từ Lê Đức</h3>
+                <div id="messageContent" class="api-content"></div>
+                <!-- Không có nút làm mới cho mục này -->
+            </div>
+
+            <div class="modal-section" id="omamoriSection">
+                <h3><span class="icon">🍀</span>Lời Khuyên Omamori</h3>
+                <div id="omamoriContent" class="api-content"></div>
+                <button id="refreshOmamoriButton" class="refresh-button"><span class="icon">✨</span>Xin lời khuyên mới</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fireworks Container -->
+    <div id="fireworksContainer"></div>
+
+    <script>
+        // DOM Elements
+        const questionBox = document.getElementById('questionBox');
+        const cuteButton = document.getElementById('cuteButton');
+        const sassyButton = document.getElementById('sassyButton');
+        const successMessageContainer = document.getElementById('successMessageContainer');
+        const successMessage = document.getElementById('successMessage');
+        const exploreButton = document.getElementById('exploreButton');
+        const fireworksContainer = document.getElementById('fireworksContainer');
+
+        const exploreModal = document.getElementById('exploreModal');
+        const closeModalButton = document.getElementById('closeModalButton');
+
+        // Modal Content Elements
+        const japaneseChallengeContent = document.getElementById('japaneseChallengeContent');
+        const refreshChallengeButton = document.getElementById('refreshChallengeButton');
+        const foodContent = document.getElementById('foodContent');
+        const refreshFoodButton = document.getElementById('refreshFoodButton');
+        const japanFactContent = document.getElementById('japanFactContent');
+        const refreshFactButton = document.getElementById('refreshFactButton');
+        const vocabContent = document.getElementById('vocabContent');
+        const refreshVocabButton = document.getElementById('refreshVocabButton');
+        const appsContent = document.getElementById('appsContent');
+        const refreshAppsButton = document.getElementById('refreshAppsButton');
+        const culturalTipsContent = document.getElementById('culturalTipsContent');
+        const refreshCulturalTipsButton = document.getElementById('refreshCulturalTipsButton');
+        const messageContent = document.getElementById('messageContent');
+        const omamoriContent = document.getElementById('omamoriContent');
+        const refreshOmamoriButton = document.getElementById('refreshOmamoriButton');
+
+
+        let initialBoxX, initialBoxY;
+        let synth, noiseSynth;
+        let currentQuizData = null; 
+
+        // --- History Arrays for Anti-Repetition ---
+        const MAX_HISTORY_LENGTH = 15; 
+        let displayedQuizQuestions = [];
+        let displayedFoods = [];
+        let displayedFacts = [];
+        let displayedVocabSets = []; 
+        let displayedApps = [];
+        let displayedCulturalTips = [];
+        let displayedOmamoriMessages = [];
+
+        function addToHistory(item, historyArray) {
+            if (typeof item === 'string' && item.trim() !== "") {
+                if (!historyArray.includes(item)) {
+                    historyArray.push(item);
+                    if (historyArray.length > MAX_HISTORY_LENGTH) {
+                        historyArray.shift(); 
+                    }
+                }
+            } else if (typeof item === 'object' && item !== null && item.question) { 
+                 if (!historyArray.some(q => q.question === item.question)) {
+                    historyArray.push(item);
+                    if (historyArray.length > MAX_HISTORY_LENGTH) {
+                        historyArray.shift();
+                    }
+                }
+            }
+        }
+        
+        function getAvoidInstruction(historyArray, itemType = "mục") {
+            if (historyArray.length > 0) {
+                const itemsToAvoid = historyArray.map(item => (typeof item === 'object' && item.question) ? item.question : item);
+                return ` Tránh lặp lại các ${itemType} sau: ${itemsToAvoid.join("; ")}.`;
+            }
+            return "";
+        }
+
+
+        // --- Gemini API Configuration ---
+        const GEMINI_API_KEY = "AIzaSyBejv3QN1KIJEXxy1s-6RH74Cj7Vd8LNlw"; 
+        const GEMINI_API_URL_TEXT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+        // Constants for error types
+        const ERROR_TYPE_NONE = 0;
+        const ERROR_TYPE_503_OVERLOAD = 1;
+        const ERROR_TYPE_API_GENERAL = 2;
+        const ERROR_TYPE_CLIENT_PROCESSING = 3;
+
+
+        async function fetchGeminiText(prompt) {
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            let responseText = "";
+            try {
+                const response = await fetch(GEMINI_API_URL_TEXT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                responseText = await response.text(); // Get raw response text for better error diagnosis
+                if (!response.ok) {
+                    console.error(`Gemini API Error (status ${response.status}). Raw error body: <<<${responseText}>>>`);
+                    if (response.status === 503) {
+                        return { error: ERROR_TYPE_503_OVERLOAD, message: "Lỗi API (503): Model AI đang quá tải." };
+                    }
+                    return { error: ERROR_TYPE_API_GENERAL, message: `Lỗi API (${response.status}). Chi tiết: ${responseText.substring(0,100)}`};
+                }
+                const result = JSON.parse(responseText);
+                if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+                    return { error: ERROR_TYPE_NONE, data: result.candidates[0].content.parts[0].text };
+                } else {
+                    console.error("Unexpected Gemini API response structure:", result);
+                    return { error: ERROR_TYPE_API_GENERAL, message: "Không nhận được nội dung hợp lệ từ API."};
+                }
+            } catch (error) {
+                console.error(`Error in fetchGeminiText. Raw response was: <<<${responseText}>>>`, error);
+                return { error: ERROR_TYPE_CLIENT_PROCESSING, message: "Lỗi xử lý phản hồi từ API phía client."};
+            }
+        }
+
+        async function fetchGeminiJson(prompt, schema) {
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: schema
+                }
+            };
+            let responseText = "";
+            try {
+                const response = await fetch(GEMINI_API_URL_TEXT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                responseText = await response.text();
+                if (!response.ok) {
+                    console.error(`Gemini API Error for JSON (status ${response.status}). Raw error body: <<<${responseText}>>>`);
+                     if (response.status === 503) {
+                        return { error: ERROR_TYPE_503_OVERLOAD, message: "Lỗi API (503): Model AI đang quá tải." };
+                    }
+                    return { error: ERROR_TYPE_API_GENERAL, message: `Lỗi API (${response.status}) cho JSON. Chi tiết: ${responseText.substring(0,100)}`};
+                }
+                const outerResult = JSON.parse(responseText);
+                if (outerResult.candidates && outerResult.candidates[0]?.content?.parts?.[0]?.text) {
+                    try {
+                        const jsonData = JSON.parse(outerResult.candidates[0].content.parts[0].text);
+                        return { error: ERROR_TYPE_NONE, data: jsonData };
+                    } catch (e) {
+                        console.error("Error parsing inner JSON from Gemini (raw part text: '" + outerResult.candidates[0].content.parts[0].text + "'):", e);
+                        return { error: ERROR_TYPE_CLIENT_PROCESSING, message: "Lỗi phân tích dữ liệu JSON từ API."};
+                    }
+                } else {
+                     console.error("Unexpected Gemini API response structure for structured JSON:", outerResult);
+                    return { error: ERROR_TYPE_API_GENERAL, message: "Không nhận được cấu trúc JSON hợp lệ từ API."};
+                }
+            } catch (error) {
+                console.error(`Error in fetchGeminiJson. Raw response was: <<<${responseText}>>>`, error);
+                return { error: ERROR_TYPE_CLIENT_PROCESSING, message: "Lỗi xử lý phản hồi JSON từ API phía client."};
+            }
+        }
+
+        // --- Static Content (Fallbacks) ---
+        const STATIC_CONTENT = {
+            japaneseChallenge: `<p class="static-placeholder">🇯🇵 Câu đố tiếng Nhật đang chờ bạn! Nhấn "Câu đố mới" để bắt đầu.</p>`,
+            food: `<div class="food-item"><strong>Takoyaki 🐙</strong><br>Bánh bạch tuộc nướng trứ danh Osaka, thơm lừng và nóng hổi.</div>`,
+            japanFact: `<p class="static-placeholder">💡 Nhật Bản có hơn 6,800 hòn đảo!</p>`,
+            vocab: `<div class="vocab-item"><strong>はい</strong> (Hai) - Vâng / Đúng vậy</div>`,
+            apps: `<div class="app-item"><strong>HyperDia</strong> (🚇): Tra cứu lịch trình tàu điện siêu chuẩn.</div>`,
+            culturalTips: `<div class="cultural-tip-item">🙏 Khi nhận hoặc đưa vật gì, hãy dùng cả hai tay.</div>`,
+            message: `
+                <p class="static-placeholder" style="text-align: left; font-style: normal;">Sắp sang Nhật thật rồi haha... Mình vui vì bạn có một hành trình mới để khám phá, nhưng cũng không khỏi có 1 chút buồn. Sang bên đó nhớ giữ gìn sức khỏe, ăn uống đầy đủ, ngủ nghỉ điều độ. Trời Nhật mùa đông lạnh lắm, đừng quên giữ ấm. Nhớ đeo khẩu trang, cẩn thận khi đi lại, sống ở đất nước xa lạ phải luôn chú ý an toàn.<br><br>
+                Mình tin rằng bạn sẽ tỏa sáng như đúng cái cách mà bạn luôn làm – mạnh mẽ, dễ thương và không ngại thử thách. Chúc bạn học tập thật tốt, làm việc suôn sẻ, sớm ổn định, nhanh giàu, luôn vui vẻ và khỏe mạnh. Nếu có những lúc thấy nhớ nhà, thấy mệt, thì hãy nhớ rằng ở Việt Nam luôn có những người bạn đang dõi theo và ủng hộ bạn hết mình.<br><br>
+                Xa nhau chỉ là tạm thời, hy vọng qua đó đừng quên mình. 🇯🇵💌✨</p>
+            `,
+            omamori: `<p class="static-placeholder" style="text-align: center; font-style: italic;">Mỗi ngày mới là một khởi đầu may mắn. Cố lên Trâm nhé! 🌸</p>`
+        };
+
+        // --- Content Loading Functions ---
+        async function loadContentAndUpdateUI(element, staticHTML, basePrompt, historyArray, itemTypeForPrompt, isJson = false, schema = null, formattingFn = null, processingFn = null) {
+            element.innerHTML = '<div class="loading-spinner"></div>';
+            const avoidInstruction = getAvoidInstruction(historyArray, itemTypeForPrompt);
+            const fullPrompt = basePrompt + avoidInstruction;
+            
+            let apiResult;
+            if (isJson) {
+                apiResult = await fetchGeminiJson(fullPrompt, schema);
+            } else {
+                apiResult = await fetchGeminiText(fullPrompt);
+            }
+
+            let errorMessageBox = '';
+            if (apiResult.error !== ERROR_TYPE_NONE) {
+                console.error("API call failed or returned invalid data for:", element.id, "Error Details:", apiResult);
+                if (apiResult.error === ERROR_TYPE_503_OVERLOAD) {
+                    errorMessageBox = `<div class="api-warning-message">🚧 ${apiResult.message} Bạn thử nhấn "làm mới" lại sau ít phút nhé!</div>`;
+                } else {
+                    errorMessageBox = `<div class="api-error-message"> Rất tiếc! ${apiResult.message} Nội dung tĩnh sẽ được hiển thị.</div>`;
+                }
+                element.innerHTML = errorMessageBox + staticHTML; // Show error then static
+                return; // Stop further processing
+            }
+            
+            // If no error, proceed with successful data
+            const successfulData = apiResult.data;
+
+            if (processingFn) { 
+                processingFn(successfulData, historyArray);
+            }
+            if (formattingFn) {
+                element.innerHTML = formattingFn(successfulData);
+            } else if (typeof successfulData === 'string') { 
+                element.innerHTML = `<div class="api-content">${successfulData.replace(/\n/g, '<br>')}</div>`;
+                if (!isJson && !processingFn) addToHistory(successfulData.trim(), historyArray); 
+            } else {
+                 element.innerHTML = staticHTML; // Fallback if data is not string and no formattingFn
+            }
+        }
+
+        // Schemas
+        const japaneseQuizSchema = {
+            type: "OBJECT",
+            properties: {
+                "question": { "type": "STRING" }, "options": { "type": "ARRAY", "items": { "type": "STRING" }},
+                "correctAnswerIndex": { "type": "NUMBER" }, "explanation": { "type": "STRING" }
+            }, required: ["question", "options", "correctAnswerIndex"]
+        };
+        const enhancedFoodSchema = {
+            type: "ARRAY", items: { type: "OBJECT", properties: {
+                "dishName": { "type": "STRING" }, "description": { "type": "STRING" },
+                "emoji": { "type": "STRING" }, "reasonToTry": { "type": "STRING" }
+            }, required: ["dishName", "description", "emoji", "reasonToTry"] }
+        };
+        const vocabSchema = {
+            type: "ARRAY", items: { type: "OBJECT", properties: {
+                "japanese": { "type": "STRING" }, "romaji": { "type": "STRING" }, "vietnamese": { "type": "STRING" }
+            }, required: ["japanese", "romaji", "vietnamese"] }
+        };
+        const appsSchema = {
+            type: "ARRAY", items: { type: "OBJECT", properties: {
+                "appName": { "type": "STRING" }, "icon": { "type": "STRING" }, "description": { "type": "STRING" }
+            }, required: ["appName", "icon", "description"] }
+        };
+        const culturalTipsSchema = {
+            type: "ARRAY", items: { type: "OBJECT", properties: {
+                "tip": { "type": "STRING" }, "category": {"type": "STRING"}
+            }, required: ["tip"] }
+        };
+
+        // Loaders
+        async function loadJapaneseChallenge() {
+            const basePrompt = "Tạo 1 câu hỏi trắc nghiệm nhỏ về từ vựng hoặc văn hóa Nhật Bản cho người mới bắt đầu (bằng tiếng Việt), kèm 3 đáp án và chỉ rõ đáp án đúng (bằng index). Câu hỏi nên vui và thú vị. Ví dụ: 'Đố bạn 'Ngon quá!' trong tiếng Nhật là gì?'. Cung cấp thêm một giải thích ngắn nếu có.";
+            await loadContentAndUpdateUI(japaneseChallengeContent, STATIC_CONTENT.japaneseChallenge, basePrompt, displayedQuizQuestions, "câu hỏi", true, japaneseQuizSchema, 
+                (data) => { // Formatting function
+                    if (!data || !data.question || !data.options || data.options.length < 3 || data.correctAnswerIndex === undefined) {
+                        currentQuizData = null;
+                        // Error already handled by loadContentAndUpdateUI, this is just fallback formatting
+                        return STATIC_CONTENT.japaneseChallenge + '<p class="api-error-message">Lỗi cấu trúc dữ liệu câu đố.</p>';
+                    }
+                    currentQuizData = data; 
+                    let optionsHTML = data.options.map((option, index) =>
+                        `<button class="quiz-option" data-index="${index}">${option}</button>`
+                    ).join('');
+                    return `<p class="api-content"><strong>${data.question}</strong></p>${optionsHTML}<div id="quizFeedback" class="api-content"></div>`;
+                },
+                (data, history) => { // Processing function (add to history)
+                    if (data && data.question) addToHistory({ question: data.question }, history); 
+                }
+            );
+        }
+
+        japaneseChallengeContent.addEventListener('click', function(event) {
+            if (event.target.classList.contains('quiz-option') && currentQuizData) {
+                const selectedIndex = parseInt(event.target.dataset.index);
+                const feedbackEl = document.getElementById('quizFeedback');
+                const options = japaneseChallengeContent.querySelectorAll('.quiz-option');
+                options.forEach(opt => { opt.disabled = true; opt.classList.remove('correct', 'incorrect'); });
+                if (selectedIndex === currentQuizData.correctAnswerIndex) {
+                    event.target.classList.add('correct');
+                    feedbackEl.innerHTML = `🎉 Chính xác! ${currentQuizData.explanation || ''}`;
+                    feedbackEl.style.color = 'green';
+                } else {
+                    event.target.classList.add('incorrect');
+                    options[currentQuizData.correctAnswerIndex].classList.add('correct');
+                    feedbackEl.innerHTML = `🤔 Chưa đúng rồi. Đáp án đúng là: ${currentQuizData.options[currentQuizData.correctAnswerIndex]}. ${currentQuizData.explanation || ''}`;
+                    feedbackEl.style.color = 'red';
+                }
+            }
+        });
+
+        async function loadJapanFoodsEnhanced() {
+            const basePrompt = "Gợi ý 2 món ăn Nhật Bản nổi tiếng. Với mỗi món, cung cấp: tên món, mô tả ngắn, emoji, và một 'lý do nên thử' hoặc 'tip khi ăn' thật hấp dẫn và vui vẻ.";
+            await loadContentAndUpdateUI(foodContent, STATIC_CONTENT.food, basePrompt, displayedFoods, "món ăn", true, enhancedFoodSchema,
+                (data) => { 
+                    if (!data || data.length === 0) return STATIC_CONTENT.food + '<p class="api-error-message">Không có dữ liệu món ăn.</p>';
+                    return data.map(f => {
+                        addToHistory(f.dishName, displayedFoods); 
+                        return `<div class="food-item"><strong>${f.dishName} ${f.emoji || ''}</strong><br>${f.description}<br><em>✨ ${f.reasonToTry}</em></div>`;
+                    }).join('');
+                }
+            );
+        }
+
+        async function loadJapanFact() {
+            const basePrompt = "Kể 1 sự thật thú vị và ngắn gọn (1-2 câu) về Nhật Bản. Trả lời trực tiếp, không cần lời dẫn.";
+            await loadContentAndUpdateUI(japanFactContent, STATIC_CONTENT.japanFact, basePrompt, displayedFacts, "sự thật", false, null,
+                (text) => { 
+                    addToHistory(text.trim(), displayedFacts); 
+                    return `<div class="fact-item"><p class="api-content">💡 ${text}</p></div>`;
+                }
+            );
+        }
+
+        async function loadVocabulary() {
+            const basePrompt = "Liệt kê 5 từ vựng tiếng Nhật thông dụng cho người mới, gồm từ gốc, romaji, nghĩa Việt. Tránh lặp lại các từ sau: おはようございます, こんばんは, ありがとう, すみません.";
+            await loadContentAndUpdateUI(vocabContent, STATIC_CONTENT.vocab, basePrompt, displayedVocabSets, "bộ từ vựng", true, vocabSchema,
+                (data) => { 
+                    if (!data || data.length === 0) return STATIC_CONTENT.vocab + '<p class="api-error-message">Không có dữ liệu từ vựng.</p>';
+                    const vocabSetString = data.map(v => v.japanese).join(','); 
+                    addToHistory(vocabSetString, displayedVocabSets);
+                    return data.map(v => `<div class="vocab-item"><strong>${v.japanese}</strong> (${v.romaji}) - ${v.vietnamese}</div>`).join('');
+                }
+            );
+        }
+
+        async function loadEssentialApps() {
+            const basePrompt = "Liệt kê 3 ứng dụng điện thoại hữu ích khi ở Nhật (đi lại, dịch thuật, tìm quán ăn), kèm icon emoji và mô tả ngắn gọn công dụng.";
+            await loadContentAndUpdateUI(appsContent, STATIC_CONTENT.apps, basePrompt, displayedApps, "ứng dụng", true, appsSchema,
+                (data) => { 
+                    if (!data || data.length === 0) return STATIC_CONTENT.apps + '<p class="api-error-message">Không có dữ liệu ứng dụng.</p>';
+                    return data.map(app => {
+                        addToHistory(app.appName, displayedApps); 
+                        return `<div class="app-item"><strong>${app.appName} ${app.icon}</strong><br>${app.description}</div>`;
+                    }).join('');
+                }
+            );
+        }
+
+        async function loadCulturalTips() {
+            const basePrompt = "Liệt kê 3 lưu ý quan trọng và ngắn gọn về văn hóa giao tiếp ở Nhật Bản cho người lần đầu đến.";
+            await loadContentAndUpdateUI(culturalTipsContent, STATIC_CONTENT.culturalTips, basePrompt, displayedCulturalTips, "lưu ý", true, culturalTipsSchema,
+                (data) => { 
+                    if (!data || data.length === 0) return STATIC_CONTENT.culturalTips + '<p class="api-error-message">Không có dữ liệu mẹo văn hóa.</p>';
+                    return data.map(item => {
+                        addToHistory(item.tip, displayedCulturalTips); 
+                        return `<div class="cultural-tip-item">${item.category ? `<strong>[${item.category}]</strong> ` : ''}${item.tip}</div>`;
+                    }).join('');
+                }
+            );
+        }
+
+        async function loadOmamoriAdvice() {
+            const basePrompt = "Viết một lời khuyên hoặc lời chúc may mắn ngắn gọn (1-2 câu), tích cực và dễ thương, như một thông điệp từ bùa Omamori của Nhật Bản, dành cho Bảo Trâm.";
+            await loadContentAndUpdateUI(omamoriContent, STATIC_CONTENT.omamori, basePrompt, displayedOmamoriMessages, "lời khuyên", false, null,
+                (text) => { 
+                    addToHistory(text.trim(), displayedOmamoriMessages);
+                    return `<p class="api-content" style="text-align: center; font-style: italic;">${text.replace(/\n/g, '<br>')}</p>`;
+                }
+            );
+        }
+
+
+        // --- UI Initialization and Event Listeners ---
+        function setInitialModalContent() {
+            japaneseChallengeContent.innerHTML = STATIC_CONTENT.japaneseChallenge;
+            foodContent.innerHTML = STATIC_CONTENT.food;
+            japanFactContent.innerHTML = STATIC_CONTENT.japanFact;
+            vocabContent.innerHTML = STATIC_CONTENT.vocab;
+            appsContent.innerHTML = STATIC_CONTENT.apps;
+            culturalTipsContent.innerHTML = STATIC_CONTENT.culturalTips;
+            messageContent.innerHTML = STATIC_CONTENT.message;
+            omamoriContent.innerHTML = STATIC_CONTENT.omamori;
+        }
+
+        function setInitialBoxPosition() {
+            if (!questionBox || questionBox.style.display === 'none') return;
+            const boxWidth = questionBox.offsetWidth;
+            const boxHeight = questionBox.offsetHeight;
+            initialBoxX = (window.innerWidth - boxWidth) / 2;
+            initialBoxY = (window.innerHeight - boxHeight) / 2;
+            questionBox.style.left = initialBoxX + 'px';
+            questionBox.style.top = initialBoxY + 'px';
+        }
+
+        window.onload = () => {
+            setInitialBoxPosition();
+            setInitialModalContent(); 
+            try {
+                synth = new Tone.Synth({ oscillator: { type: 'triangle8' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.03, release: 0.25 }}).toDestination();
+                noiseSynth = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.001, decay: 0.18, sustain: 0, release: 0.15 }}).toDestination();
+            } catch (e) { console.warn("Tone.js could not be initialized on load.", e); }
+        };
+        window.onresize = setInitialBoxPosition;
+
+        function initializeAudio() {
+            if (Tone.context.state !== 'running') {
+                Tone.start().catch(e => console.warn("Error starting AudioContext:", e));
+            }
+        }
+
+        cuteButton.addEventListener('click', () => {
+            initializeAudio();
+            const now = Tone.now();
+            const boxWidth = questionBox.offsetWidth;
+            const boxHeight = questionBox.offsetHeight;
+            const padding = 20;
+            const maxX = Math.max(padding, window.innerWidth - boxWidth - padding);
+            const maxY = Math.max(padding, window.innerHeight - boxHeight - padding);
+            let newX = Math.max(padding, Math.random() * maxX);
+            let newY = Math.max(padding, Math.random() * maxY);
+            const randomRotate = (Math.random() - 0.5) * 15;
+            const randomScale = 1 + (Math.random() - 0.5) * 0.1;
+            questionBox.style.transform = `rotate(${randomRotate}deg) scale(${randomScale}) translateZ(0)`;
+            questionBox.style.left = newX + 'px';
+            questionBox.style.top = newY + 'px';
+            if (synth) {
+                synth.triggerAttackRelease("C5", "16n", now);
+                synth.triggerAttackRelease("G5", "16n", now + 0.07);
+            }
+            setTimeout(() => { questionBox.style.transform = 'rotate(0deg) scale(1) translateZ(0)'; }, 700);
+        });
+
+        sassyButton.addEventListener('click', () => {
+            initializeAudio();
+            const now = Tone.now();
+            questionBox.style.display = 'none';
+            successMessageContainer.style.display = 'flex';
+            createFireworks();
+            setTimeout(() => {
+                if(exploreButton) {
+                    exploreButton.style.display = 'inline-block';
+                    void exploreButton.offsetWidth;
+                    exploreButton.style.animationPlayState = 'running';
+                }
+            }, 600);
+            if (noiseSynth && synth) {
+                noiseSynth.triggerAttackRelease("2n", now);
+                let accumulatedDelay = 0.05;
+                const delayIncrement = 0.03;
+                for (let i = 0; i < 7; i++) {
+                    const note = ['C6', 'E6', 'G6', 'A6', 'C7'][Math.floor(Math.random() * 5)];
+                    synth.triggerAttackRelease(note, "32n", now + accumulatedDelay);
+                    accumulatedDelay += delayIncrement + (Math.random() * 0.015);
+                }
+            }
+        });
+
+        exploreButton.addEventListener('click', () => {
+            exploreModal.classList.add('show');
+            if (japaneseChallengeContent.innerHTML.includes('static-placeholder')) loadJapaneseChallenge();
+            if (foodContent.innerHTML.includes('static-placeholder')) loadJapanFoodsEnhanced();
+            if (japanFactContent.innerHTML.includes('static-placeholder')) loadJapanFact();
+            if (vocabContent.innerHTML.includes('static-placeholder')) loadVocabulary();
+            if (appsContent.innerHTML.includes('static-placeholder')) loadEssentialApps();
+            if (culturalTipsContent.innerHTML.includes('static-placeholder')) loadCulturalTips();
+            if (omamoriContent.innerHTML.includes('static-placeholder')) loadOmamoriAdvice();
+
+        });
+
+        closeModalButton.addEventListener('click', () => {
+            exploreModal.classList.remove('show');
+        });
+
+        // Refresh button listeners
+        refreshChallengeButton.addEventListener('click', loadJapaneseChallenge);
+        refreshFoodButton.addEventListener('click', loadJapanFoodsEnhanced);
+        refreshFactButton.addEventListener('click', loadJapanFact);
+        refreshVocabButton.addEventListener('click', loadVocabulary);
+        refreshAppsButton.addEventListener('click', loadEssentialApps);
+        refreshCulturalTipsButton.addEventListener('click', loadCulturalTips);
+        refreshOmamoriButton.addEventListener('click', loadOmamoriAdvice);
+
+
+        function createFireworks() {
+            if (!fireworksContainer || !successMessage || successMessageContainer.style.display === 'none') return;
+            fireworksContainer.innerHTML = '';
+            requestAnimationFrame(() => {
+                const successBox = successMessage.getBoundingClientRect();
+                let centerX = successBox.width > 0 ? successBox.left + successBox.width / 2 : window.innerWidth / 2;
+                let centerY = successBox.height > 0 ? successBox.top + successBox.height / 2 : window.innerHeight / 2;
+
+                const numParticles = 130;
+                const pastelColors = ['#FFC0CB', '#B0E0E6', '#E6E6FA', '#FFFACD', '#98FB98', '#FFB6C1', '#ADD8E6', '#FFDAB9', '#F0E68C', '#FFDEAD'];
+
+                let longestAnimationTime = 0;
+                for (let i = 0; i < numParticles; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    particle.style.backgroundColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+                    particle.style.left = centerX + 'px';
+                    particle.style.top = centerY + 'px';
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * (Math.min(window.innerWidth, window.innerHeight) * 0.35) + 80;
+                    const scaleEnd = Math.random() * 0.8 + 0.5;
+                    particle.style.setProperty('--tx', (Math.cos(angle) * distance) + 'px');
+                    particle.style.setProperty('--ty', (Math.sin(angle) * distance) + 'px');
+                    particle.style.setProperty('--s', scaleEnd);
+                    const particleAnimationDuration = Math.random() * 1.2 + 1.8;
+                    const particleAnimationDelay = Math.random() * 0.6;
+                    particle.style.animation = `explode ${particleAnimationDuration}s cubic-bezier(0.15, 0.5, 0.45, 0.95) ${particleAnimationDelay}s forwards`;
+                    fireworksContainer.appendChild(particle);
+                    longestAnimationTime = Math.max(longestAnimationTime, (particleAnimationDuration + particleAnimationDelay) * 1000);
+                }
+                setTimeout(() => { if (fireworksContainer) fireworksContainer.innerHTML = ''; }, longestAnimationTime + 500);
+            });
+        }
+    </script>
+</body>
+</html>
